@@ -16,8 +16,22 @@ query getProducts($page: Int, $pageSize: Int, $where: CatalogProductDtoFilter) {
         location
         description
       }
-    }
+    } 
     totalCount
+  }
+}
+
+query getCategories {
+  categories {
+    id
+    name
+  }
+}
+
+query getInventories {
+  inventories {
+    id
+    location
   }
 }
 
@@ -26,4 +40,15 @@ mutation createProductMutation($createProductInput: CreateProductInput!) {
     id
     name
   }
+}
+
+mutation updateProductMutation($updateProductInput: UpdateProductInput!) {
+  updateProduct(updateProductInput: $updateProductInput) {
+    id
+    name
+  }
+}
+
+mutation deleteProductMutation($deleteProductInput: DeleteProductInput!) {
+  deleteProduct(deleteProductInput: $deleteProductInput)
 }

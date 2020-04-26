@@ -41,7 +41,7 @@ namespace N8T.Infrastructure.Grpc
         {
             services.AddGrpc(options =>
             {
-                options.Interceptors.Add<RequestLoggerInterceptor>();
+                //options.Interceptors.Add<RequestLoggerInterceptor>();
                 options.Interceptors.Add<ExceptionHandleInterceptor>();
                 options.EnableDetailedErrors = true;
             });
@@ -54,9 +54,7 @@ namespace N8T.Infrastructure.Grpc
         public static IServiceCollection AddCustomGrpcClient(this IServiceCollection services,
             Action<IServiceCollection> doMoreActions = null)
         {
-            //AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-
-            services.AddSingleton<ClientLoggerInterceptor>();
+            //services.AddSingleton<ClientLoggerInterceptor>();
 
             doMoreActions?.Invoke(services);
 
