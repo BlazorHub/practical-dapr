@@ -17,6 +17,7 @@ using N8T.Infrastructure.Dapr;
 using N8T.Infrastructure.Data;
 using N8T.Infrastructure.GraphQL;
 using N8T.Infrastructure.Grpc;
+using N8T.Infrastructure.Tye;
 using N8T.Infrastructure.ValidationModel;
 
 namespace CoolStore.ProductCatalogApi
@@ -31,6 +32,9 @@ namespace CoolStore.ProductCatalogApi
             var (builder, config) = WebApplication.CreateBuilder(args)
                 .AddCustomConfiguration();
 
+            var appOptions = config.GetOptions<AppOptions>("app");
+            Console.WriteLine(Figgle.FiggleFonts.Doom.Render($"{appOptions.Name}"));
+
             builder.Services
                 .AddHttpContextAccessor()
                 .AddCustomMediatR(typeof(Program))
@@ -38,6 +42,7 @@ namespace CoolStore.ProductCatalogApi
                 .AddCustomDbContext<ProductCatalogDbContext>(
                     typeof(Program),
                     config.GetConnectionString(Consts.SQLSERVER_DB_ID))
+                .AddCustomMvc(typeof(Program), withDapr: false)
                 .AddCustomGraphQL(c =>
                 {
                     c.RegisterQueryType<QueryType>();
@@ -49,13 +54,7 @@ namespace CoolStore.ProductCatalogApi
                 {
                     svc.AddGrpcClient<InventoryApi.InventoryApiClient>(o =>
                     {
-
-                        var inventoryClientUrl = config
-                            .GetServiceUri(Consts.INVENTORY_API_ID, "https")
-                            ?.ToString()
-                            .Replace("https", "http") /* hack: ssl termination */;
-
-                        o.Address = new Uri($"{inventoryClientUrl}");
+                        o.Address = config.GetGrpcUriFor(Consts.INVENTORY_API_ID);
                     });
                 })
                 .AddCustomDaprClient()
@@ -70,12 +69,13 @@ namespace CoolStore.ProductCatalogApi
                 .UseCloudEvents()
                 .UseEndpoints(endpoints =>
                 {
+                    endpoints.MapControllers();
+                    endpoints.MapSubscribeHandler();
                     endpoints.MapGet("/", context =>
                     {
                         context.Response.Redirect("/playground");
                         return Task.CompletedTask;
                     });
-                    endpoints.MapSubscribeHandler();
                 });
 
             await app.RunAsync();
